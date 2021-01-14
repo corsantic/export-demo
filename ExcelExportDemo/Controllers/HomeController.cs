@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using ClosedXML.Excel;
@@ -37,29 +38,18 @@ namespace ExcelExportDemo.Controllers
         {
             using (var workbook = new XLWorkbook())
             {
-                var worksheet = workbook.Worksheets.Add(_appSettings.WorkSheetTitle);
+                var worksheet = workbook.Worksheets.Add(_appSettings.WorkSheetOptions.WorkSheetTitle);
                 var currentRow = 1;
                 var column = 1;
                 var type = typeof(User);
-                var properties = type.GetProperties();
+                ConfigureFreezeColumns(worksheet);
+                ConfigureFreezeRows(worksheet);
 
-                foreach (var prop in properties)
-                {
-                    worksheet.Cell(currentRow, column).Value = prop.Name;
-                    column++;
-                }
 
-                foreach (var user in users)
-                {
-                    currentRow++;
-                    column = 1;
-                    foreach (var property in properties)
-                    {
-                        worksheet.Cell(currentRow, column).Value = property.GetValue(user, null);
-                        column++;
-//                        worksheet.Cell(currentRow, 2).Value = user.Username;
-                    }
-                }
+                var properties = SetHeaders(type, worksheet, currentRow, column);
+
+
+                SetValues(currentRow, properties, worksheet);
 
                 using (var stream = new MemoryStream())
                 {
@@ -72,6 +62,46 @@ namespace ExcelExportDemo.Controllers
                         "users.xlsx");
                 }
             }
+        }
+
+        private void ConfigureFreezeRows(IXLWorksheet worksheet)
+        {
+            foreach (var freezeRow in _appSettings.WorkSheetOptions.FreezeRows)
+                worksheet.SheetView.FreezeRows(freezeRow);
+        }
+
+        private void ConfigureFreezeColumns(IXLWorksheet worksheet)
+        {
+            foreach (var freezeColumn in _appSettings.WorkSheetOptions.FreezeColumns)
+                worksheet.SheetView.FreezeColumns(freezeColumn);
+        }
+
+        private void SetValues(int currentRow, PropertyInfo[] properties, IXLWorksheet worksheet)
+        {
+            int column;
+            foreach (var user in users)
+            {
+                currentRow++;
+                column = 1;
+                foreach (var property in properties)
+                {
+                    worksheet.Cell(currentRow, column).Value = property.GetValue(user, null);
+                    column++;
+                }
+            }
+        }
+
+        private static PropertyInfo[] SetHeaders(Type type, IXLWorksheet worksheet, int currentRow, int column)
+        {
+            var properties = type.GetProperties();
+
+            foreach (var prop in properties)
+            {
+                worksheet.Cell(currentRow, column).Value = prop.Name;
+                column++;
+            }
+
+            return properties;
         }
 
 

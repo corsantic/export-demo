@@ -1,9 +1,10 @@
 ﻿using System;
+using ExcelExportDemo.model.WorkSheet;
 
 namespace ExcelExportDemo.model
 {
     public class AppSettings
     {
-        public string WorkSheetTitle { get; set; }
+        public WorkSheetOptions WorkSheetOptions { get; set; }
     }
 }
