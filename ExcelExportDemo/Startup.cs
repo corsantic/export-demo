@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ExcelExportDemo.model;
 
 namespace ExcelExportDemo
 {
@@ -28,6 +29,8 @@ namespace ExcelExportDemo
         {
 
             services.AddControllers();
+            var appSettingsSection = Configuration.GetSection("AppSettings");
+            services.Configure<AppSettings>(appSettingsSection);
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "ExcelExportDemo", Version = "v1" });
